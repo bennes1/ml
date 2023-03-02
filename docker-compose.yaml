@@ -1,3 +1,19 @@
 services:
   backend:
-    build: ./backend 
+    build: ./backend
+    ports:
+      - '80:80'
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database
+  database:
+    build: ./database
+    hostname: cassandra
+    volumes: 
+      - database:/bitnami
+      - ./database/scripts:/docker-entrypoint-initdb.d
+    ports:
+      - '9042:9042'
+volumes:
+  database:

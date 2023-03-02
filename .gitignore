@@ -1,0 +1,4 @@
+database/data/*
+!*.keep
+tmp
+__pycache__
