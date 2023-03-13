@@ -1,29 +1,29 @@
-
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import socketserver
+import asyncio
+import tornado.web
 import json
-import cgi
+from TicTacToe.view import TicTacToeView
 
-class Server(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        
-    def do_HEAD(self):
-        self._set_headers()
-        
-    # GET sends back a Hello world message
-    def do_GET(self):
+from log import setupLogging
+setupLogging()
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
         from app.test import sample
-        self.wfile.write(json.dumps(sample()).encode())
-        
-def run(server_class=HTTPServer, handler_class=Server, address='0.0.0.0', port=80):
-    server_address = (address, port)
-    httpd = server_class(server_address, handler_class)
-    
-    print ('Starting httpd on port %d...' % port)
-    httpd.serve_forever()
-    
+        self.write(json.dumps(sample()))
+
+def makeApp():
+    return tornado.web.Application([
+        (r"/", MainHandler),
+        (r"/ticTacToe", TicTacToeView)
+    ],
+        debug=True
+    )
+
+async def main():
+    app = makeApp()
+    app.listen(80)
+    shutdown_event = asyncio.Event()
+    await shutdown_event.wait()
+
 if __name__ == "__main__":
-    run()
+    asyncio.run(main())
