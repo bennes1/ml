@@ -1,18 +1,19 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
     ports:
       - '80:80'
-    volumes:
-      - ./backend:/app
     depends_on:
       - database
+    entrypoint: ["python3", "/app/server.py"]
   database:
     build: ./database
     hostname: cassandra
     volumes: 
       - database:/bitnami
-      - ./database/scripts:/docker-entrypoint-initdb.d
     ports:
       - '9042:9042'
 volumes:

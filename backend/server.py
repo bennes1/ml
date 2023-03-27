@@ -1,15 +1,15 @@
 import asyncio
 import tornado.web
 import json
-from TicTacToe.view import TicTacToeView
+from ticTacToe.view import TicTacToeView
 
-from log import setupLogging
+from common.log import setupLogging
 setupLogging()
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        from app.test import sample
-        self.write(json.dumps(sample()))
+        file = open("/app/common/helloWorld.html", "r")
+        self.write(file.read())
 
 def makeApp():
     return tornado.web.Application([

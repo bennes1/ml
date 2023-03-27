@@ -2,3 +2,4 @@ database/data/*
 !*.keep
 tmp
 __pycache__
+.pytest_cache

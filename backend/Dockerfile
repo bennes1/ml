@@ -1,6 +1,9 @@
-FROM python:latest
+FROM python:latest AS production
 RUN mkdir /app/
-RUN pip install cassandra-driver
-RUN pip install tornado
+COPY requirements.txt /app
+RUN pip install -r /app/requirements.txt
 COPY . /app/
-ENTRYPOINT ["python3", "/app/server.py"]
+
+FROM production AS development
+COPY devRequirements.txt /app
+RUN pip install -r /app/devRequirements.txt

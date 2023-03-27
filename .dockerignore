@@ -1,2 +1,6 @@
 Dockerfile
 .git
+devRequirements.txt
+requirements.txt
+__pycache__
+.pytest_cache

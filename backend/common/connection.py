@@ -1,4 +1,4 @@
-from log import getLogging
+from common.log import getLogging
 logger = getLogging()
 
 class Connection:

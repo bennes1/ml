@@ -1,0 +1,4 @@
+cassandra-driver
+tornado
+pytest
+pytest-mock

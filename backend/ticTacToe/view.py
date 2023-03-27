@@ -1,6 +1,6 @@
 import json
 from tornado.web import RequestHandler
-from log import getLogging
+from common.log import getLogging
 logger = getLogging()
 
 class TicTacToeView(RequestHandler):
@@ -14,15 +14,17 @@ class TicTacToeView(RequestHandler):
     def get(self):
         try:
             action = self.get_argument('action', 'view')
-            database = 'test'
-            match action:
-                case 'reset_db':
-                    from TicTacToe.resetDatabase import resetDatabase
-                    data = resetDatabase(database)
-                case 'view':
-                    data = self.showView()
-                case _:
-                    raise ValueError("Action doesn't exist")
+            if action == 'view':
+                data = self.showView()
+            else:
+                from ticTacToe.table import TicTacToeTable
+                qTable = TicTacToeTable()
+
+                match action:
+                    case 'setup':
+                        data = qTable.setup()
+                    case _:
+                        raise ValueError("Action doesn't exist")
 
             returnValue = {
                 'successful': True,
