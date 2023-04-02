@@ -12,13 +12,6 @@ class Connection:
         authProvider = PlainTextAuthProvider(username='cassandra', password='cassandra')
         self.cluster = Cluster(['cassandra'],port=9042, auth_provider=authProvider)
         self.session = self.cluster.connect()
-        self._init_database()
-
-    def _init_database(self):
-        self.execute(
-            f'CREATE KEYSPACE IF NOT EXISTS {self.database} '
-            f"WITH REPLICATION = {{ 'class' : 'SimpleStrategy', 'replication_factor' : '1' }} "
-        )
         self.execute(f'USE {self.database}')
 
     def execute(self, sql):

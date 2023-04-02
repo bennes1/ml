@@ -2,3 +2,5 @@ cassandra-driver
 tornado
 pytest
 pytest-mock
+numpy
+shortuuid

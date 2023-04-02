@@ -14,6 +14,7 @@ services:
     hostname: cassandra
     volumes: 
       - database:/bitnami
+      - ./database/scripts:/docker-entrypoint-initdb.d
     ports:
       - '9042:9042'
 volumes:

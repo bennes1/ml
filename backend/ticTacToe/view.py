@@ -17,12 +17,12 @@ class TicTacToeView(RequestHandler):
             if action == 'view':
                 data = self.showView()
             else:
-                from ticTacToe.table import TicTacToeTable
-                qTable = TicTacToeTable()
+                from ticTacToe.agent import TicTacToeAgent
+                agent = TicTacToeAgent()
 
                 match action:
-                    case 'setup':
-                        data = qTable.setup()
+                    case 'createGame':
+                        data = agent.startGame()
                     case _:
                         raise ValueError("Action doesn't exist")
 
