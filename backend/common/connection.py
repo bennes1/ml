@@ -14,13 +14,21 @@ class Connection:
         self.session = self.cluster.connect()
         self.execute(f'USE {self.database}')
 
-    def execute(self, sql):
-        self.session.execute(sql)
+    def execute(self, sql, values=None):
+        if not values:
+            return self.session.execute(sql)
+        else:
+            prepared = self.session.prepare(sql)
+            bound = prepared.bind(values)
+            return self.session.execute(bound)
 
-    def query(self, sql):
-        rows = self.session.execute(sql)
-        return list(rows)
+    def query(self, sql, values=None):
+        return list(self.execute(sql, values))
 
     def close(self):
         self.cluster.shutdown()
+
+    def open(self):
+        self.session = self.cluster.connect()
+        self.execute(f'USE {self.database}')
 

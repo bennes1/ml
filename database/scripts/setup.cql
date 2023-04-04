@@ -3,15 +3,12 @@ WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : '1' };
 
 USE tictactoe;
 
-CREATE TABLE IF NOT EXISTS q_table (
+CREATE TABLE IF NOT EXISTS qtable (
     qid int PRIMARY KEY,
-    table_values list<int>
+    table_values list<float>
 );
 
-CREATE TABLE IF NOT EXISTS steps (
-    gameid ascii,
-    created_time timestamp,
-    model list<ascii>,
-    steps list<int>,
-    PRIMARY KEY (gameid, created_time)
+CREATE TABLE IF NOT EXISTS game (
+    gameid ascii PRIMARY KEY,
+    model list<int>,
 );

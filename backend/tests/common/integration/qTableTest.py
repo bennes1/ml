@@ -3,19 +3,22 @@ import sys
 sys.path.append("/app")
 import common.qTable
 import common.connection
+import numpy as np
+from common.log import getLogging
+logger = getLogging()
 
-VALID_GRID = ["","X","O","X"]
-VALID_VALUES = [1,2,3,4]
+VALID_GRID = [[0,1],[2,1]]
+EMPTY_GRID = [[2,2],[2,2]]
 
 def setup():
     conn = common.connection.Connection('test')
-    qTable = common.qTable.QTable(conn, places=4, states=["","X","O"])
+    qTable = common.qTable.QTable(conn, width=2, numStates=3)
     return [conn, qTable]
 
 def provideGetRowError():
     data = [
-        [["", ""], 'Grid needs to be the same size as the table.'],
-        [["P", "", "", "X"], 'CellValue is not in states.']
+        [[0, 0], 'Grid needs to be the same size as the table.'],
+        [[[7, 0], [0, 1]], 'CellValue is not in states.']
     ]
     for row in data:
         yield row
@@ -32,9 +35,9 @@ def testGetRowError(testInput):
 
 def provideUpdateRowError():
     data = [
-        [["", ""], VALID_VALUES, 'Grid needs to be the same size as the table.'],
+        [[0,0], VALID_GRID, 'Grid needs to be the same size as the table.'],
         [VALID_GRID, [1, 2], 'Values need to be the same size as the table.'],
-        [["P", "", "", "X"], VALID_VALUES, 'CellValue is not in states.']
+        [[[7,0],[0,2]], VALID_GRID, 'CellValue is not in states.']
     ]
     for row in data:
         yield row
@@ -52,15 +55,26 @@ def testUpdateRowError(testInput):
 
 def testGetRowEmptySet():
     [conn, qTable] = setup()
-    qTable.setup()
-    results = qTable.getRow(VALID_GRID)
-    assert results == [0,0,0,0]
+    results = qTable.getRow(EMPTY_GRID)
+    assert results == [[0,0],[0,0]]
     conn.close()
 
 def testNewRowSuccess():
     [conn, qTable] = setup()
-    qTable.setup()
-    qTable.updateRow(VALID_GRID, VALID_VALUES)
+    qTable.updateRow(VALID_GRID, VALID_GRID)
     results = qTable.getRow(VALID_GRID)
-    assert results == VALID_VALUES
+    assert results == VALID_GRID
     conn.close()
+
+def testGetDependentRows():
+    [conn, qTable] = setup()
+    qTable.updateRow([[2,1],[0,0]], [[1,2],[4,5]])
+    qTable.updateRow([[2,1],[0,1]], [[2,2],[3,3]])
+    qTable.updateRow([[0,1],[0,1]], [[1,2],[3,3]])
+
+    results = qTable.getDependentRows([[2,1],[0,0]])
+
+    logger.debug(results)
+
+    assert len(list(results[0])) == 2
+    assert len(list(results[1])) == 2

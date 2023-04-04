@@ -1,5 +1,11 @@
 import json
 from tornado.web import RequestHandler
+from ticTacToe.game import TicTacToeGame
+from tornado import concurrent
+
+executor = concurrent.futures.ThreadPoolExecutor(8)
+
+# Debug
 from common.log import getLogging
 logger = getLogging()
 
@@ -12,17 +18,42 @@ class TicTacToeView(RequestHandler):
         self.set_header("Content-Type", 'application/json; charset="utf-8"')
 
     def get(self):
+        game = None
+
+        def runUpdate(chosen, index):
+            game.open()
+            game.runUpdate(chosen, index)
+            game.close()
+
         try:
             action = self.get_argument('action', 'view')
+            gameId = self.get_argument('gameId', '')
             if action == 'view':
                 data = self.showView()
             else:
-                from ticTacToe.agent import TicTacToeAgent
-                agent = TicTacToeAgent()
+                game = TicTacToeGame(gameId)
 
                 match action:
                     case 'createGame':
-                        data = agent.startGame()
+                        data = game.startGame()
+                    case 'nonAgentTurn':
+                        pos = self.get_argument('pos', '')
+                        value = self.get_argument('value', 'O')
+                        if gameId == '':
+                            raise ValueError("GameId is required")
+                        if pos == '':
+                            raise ValueError("Position is required")
+                        data = game.nonAgentTurn(int(pos), value)
+
+                        executor.submit(runUpdate, data, 2)
+
+                    case 'agentTurn':
+                        if gameId == '':
+                            raise ValueError("GameId is required")
+                        data = game.agentTurn()
+
+                        executor.submit(runUpdate, data, 1)
+
                     case _:
                         raise ValueError("Action doesn't exist")
 
@@ -36,6 +67,9 @@ class TicTacToeView(RequestHandler):
                 'error': 'An error occurred'
             }
             logger.exception ('Failed to get request data')
+        finally:
+            if game:
+                game.close()
 
         self.write(json.dumps(returnValue))
 

@@ -1,15 +1,17 @@
 from common.log import getLogging
 logger = getLogging()
+import numpy as np
+import json
 
 class QTable:
-    def __init__(self, connection, places=9, states=None):
+    def __init__(self, connection, width=3, numStates=2):
         if not connection:
             raise ValueError("Connection must be defined.")
 
         self.connection = connection
-        self.places = places
-        self.states = states
-        self.table = 'q_table'
+        self.width = width
+        self.numStates = numStates
+        self.table = 'qtable'
 
     def setup(self):
         self.connection.execute(
@@ -23,58 +25,32 @@ class QTable:
 
         return True
 
-    def _validateLength(self, grid=[], start='Grid needs'):
-        if not grid or len(grid) != self.places:
-            raise ValueError(f"{start} to be the same size as the table.")
-
-    def _getTableId(self, grid=[]):
-        if not self.states:
-            states = 2
-        else:
-            states = len(self.states)
-
-        tableId = 1
-        i = 0
-        for x in grid:
-            part = self._getIdPart(x)
-            if part > 0:
-                tableId += part + states * i
-            i += 1
-        return tableId
-
-    def _getIdPart(self, cellValue):
-        if not self.states:
-            if isspace(cellValue):
-                return 0
-            else:
-                return 1
-        else:
-            i = 0
-            for x in self.states:
-                if x == cellValue:
-                    return i
-                i += 1
-            raise ValueError("CellValue is not in states.")
-
-
-    def getRow(self, grid=[]):
-        self._validateLength(grid)
-        tableId = self._getTableId(grid)
-
-        query = self.connection.query(f'SELECT table_values FROM {self.table} WHERE qid = {tableId}')
+    def getRow(self, qid):
+        query = self.connection.query(f'SELECT table_values FROM {self.table} WHERE qid = {qid}')
 
         if not len(query):
-            return [0] * self.places
+            return [0] * self.width * self.width
         else:
             return query[0][0]
 
-    def updateRow(self, grid=[], values=[]):
-        self._validateLength(grid)
-        self._validateLength(values, start='Values need')
+    def getDependentRows(self, tableIds):
+        tableIdsString = ','.join(map(str, tableIds))
 
-        tableId = self._getTableId(grid)
+        query = self.connection.query(f'SELECT qid, table_values FROM {self.table} WHERE qid IN ({tableIdsString})')
 
-        self.connection.execute(f'UPDATE {self.table} set table_values = {values} WHERE qid = {tableId}')
+        return self._extractRows(query)
+
+    def _extractRows(self, query):
+        return [
+            list(map(lambda x: x[1], query)),
+            list(map(lambda x: x[0], query))
+        ]
+
+    def updateRow(self, qid, values):
+        logger.debug("updateRow")
+        logger.debug(qid)
+        logger.debug(values)
+        self.connection.execute(f"UPDATE {self.table} set table_values = {values} WHERE qid = {qid}")
 
         return True
 
